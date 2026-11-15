@@ -144,8 +144,19 @@ em { font-style: italic; }
 /* ---------- Curtain (intro) ---------- */
 .curtain {
   position: fixed; inset: 0; z-index: 200;
-  background: var(--night); color: var(--mogra);
+  /* champagne card stock: lighter at the centre, deepening to the edges */
+  background: radial-gradient(ellipse 70% 60% at 50% 48%, #FBF6EC 0%, #F3E8D6 55%, #E7D6BB 100%);
+  color: #7A1F1C;
   display: grid; place-items: center;
+}
+/* fine double gold frame, like the border of a printed invitation */
+.curtain::before {
+  content: ""; position: absolute; inset: clamp(14px, 2.4vw, 28px);
+  border: 1px solid rgba(168,130,63,.45); pointer-events: none;
+}
+.curtain::after {
+  content: ""; position: absolute; inset: calc(clamp(14px, 2.4vw, 28px) + 6px);
+  border: 1px solid rgba(168,130,63,.2); pointer-events: none;
 }
 html:not(.js) .curtain { display: none; }
 .curtain__mark { text-align: center; overflow: hidden; padding: .1em 0 .3em; }
@@ -153,9 +164,16 @@ html:not(.js) .curtain { display: none; }
   display: block; font-family: var(--serif); font-style: italic;
   font-size: clamp(64px, 11vw, 156px); line-height: 1; letter-spacing: -.01em; font-weight: 500;
 }
+.curtain__rule {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin: 10px auto 0; width: min(260px, 60vw);
+}
+.curtain__rule i { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #A8823F); }
+.curtain__rule i:last-child { background: linear-gradient(90deg, #A8823F, transparent); }
+.curtain__rule b { width: 7px; height: 7px; background: #A8823F; transform: rotate(45deg); flex: none; }
 .curtain__sub {
-  display: block; margin-top: 18px;
-  font-size: 11px; letter-spacing: .32em; text-transform: uppercase; color: rgba(251,247,240,.6);
+  display: block; margin-top: 16px;
+  font-size: 11px; font-weight: 500; letter-spacing: .34em; text-transform: uppercase; color: #8C6A2F;
 }
 
 /* ---------- Nav ---------- */
@@ -604,18 +622,61 @@ html:not(.js) .curtain { display: none; }
 .lb__close { position: absolute; top: 22px; right: var(--gutter); font-size: 12px; letter-spacing: .2em; text-transform: uppercase; padding: 10px 0; }
 .lb__count { position: absolute; top: 30px; left: var(--gutter); font-size: 12px; letter-spacing: .2em; opacity: .6; }
 
-/* ---------- Floating WhatsApp (mobile) ---------- */
+/* ---------- Floating WhatsApp ---------- */
 .fab {
-  position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 60;
-  display: none; align-items: center; gap: 8px;
-  height: 52px; padding: 0 20px 0 16px; border-radius: 999px;
-  background: var(--ink); color: var(--mogra);
-  font-size: 12px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase;
-  box-shadow: 0 10px 30px rgba(21,16,13,.25);
-  transform: translateY(140%); transition: transform .6s var(--ease);
+  position: fixed; z-index: 60;
+  right: calc(var(--gutter) - 4px); bottom: calc(24px + env(safe-area-inset-bottom));
+  display: flex; align-items: center; gap: 12px;
+  transform: translateY(160%) scale(.8); opacity: 0;
+  transition: transform .8s var(--ease), opacity .6s var(--ease);
+  -webkit-tap-highlight-color: transparent;
 }
-.fab svg { width: 20px; height: 20px; }
-.fab.is-shown { transform: none; }
+.fab.is-shown { transform: none; opacity: 1; }
+.menu-open .fab { transform: translateY(160%) scale(.8); opacity: 0; pointer-events: none; }
+
+.fab__btn {
+  position: relative; display: grid; place-items: center;
+  width: 62px; height: 62px; border-radius: 50%;
+  background: var(--ink); color: var(--mogra);
+  box-shadow: inset 0 0 0 1px rgba(168,130,63,.7), 0 14px 34px -10px rgba(21,16,13,.55);
+  transition: background-color .5s var(--ease), color .5s var(--ease), transform .5s var(--ease), box-shadow .5s var(--ease);
+}
+.fab__btn svg { width: 25px; height: 25px; transition: transform .6s var(--ease); }
+/* slow brass ring: a quiet hint rather than a blinking badge */
+.fab__btn::before, .fab__btn::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  border: 1px solid var(--brass); opacity: 0; pointer-events: none;
+  animation: fab-ring 4.8s var(--ease) infinite;
+}
+.fab__btn::after { animation-delay: .5s; }
+@keyframes fab-ring {
+  0% { transform: scale(1); opacity: 0; }
+  8% { opacity: .75; }
+  45%, 100% { transform: scale(1.65); opacity: 0; }
+}
+
+.fab__label {
+  height: 42px; padding: 0 18px; border-radius: 999px; display: inline-flex; align-items: center;
+  background: var(--mogra); color: var(--ink);
+  font-size: 11px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap;
+  box-shadow: inset 0 0 0 1px var(--line), 0 10px 26px -12px rgba(21,16,13,.4);
+  opacity: 0; transform: translateX(14px); pointer-events: none;
+  transition: opacity .5s var(--ease), transform .6s var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .fab:hover .fab__label { opacity: 1; transform: none; }
+  .fab:hover .fab__btn { background: var(--sindoor); transform: scale(1.06); }
+  .fab:hover .fab__btn svg { transform: rotate(-10deg) scale(1.05); }
+}
+.fab:focus-visible { outline: none; }
+.fab:focus-visible .fab__btn { outline: 1.5px solid var(--sindoor); outline-offset: 4px; }
+.fab:active .fab__btn { transform: scale(.94); }
+
+/* over dark sections the button flips to ivory so it never disappears */
+.fab.is-on-dark .fab__btn { background: var(--mogra); color: var(--ink); box-shadow: inset 0 0 0 1px rgba(168,130,63,.8), 0 14px 34px -10px rgba(0,0,0,.6); }
+@media (hover: hover) and (pointer: fine) {
+  .fab.is-on-dark:hover .fab__btn { background: var(--marigold); color: var(--ink); }
+}
 
 /* ==========================================================================
    Responsive
@@ -711,7 +772,9 @@ html:not(.js) .curtain { display: none; }
   .lb__prev { left: calc(50% - 68px); }
   .lb__next { right: calc(50% - 68px); }
 
-  .fab { display: inline-flex; }
+  .fab { right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .fab__btn { width: 56px; height: 56px; }
+  .fab__btn svg { width: 23px; height: 23px; }
 }
 
 /* ---------- Reduced motion ---------- */

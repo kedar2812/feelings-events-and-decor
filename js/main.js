@@ -267,13 +267,13 @@
       const y = window.scrollY;
       nav.classList.toggle('is-solid', y > 40);
       nav.classList.toggle('is-hidden', y > lastY && y > 400 && !document.documentElement.classList.contains('menu-open'));
-      fab.classList.toggle('is-shown', y > window.innerHeight * .8);
       lastY = y;
     }, { passive: true });
   }
 
   if (!hasGsap || reduce) {
     curtain && curtain.remove();
+    fab.classList.add('is-shown');
     basicNav();
     if (reduce) $$('.process__img')[0]?.classList.add('is-active');
     return;
@@ -308,9 +308,16 @@
   lenis.on('scroll', ({ scroll, direction }) => {
     nav.classList.toggle('is-solid', scroll > 40);
     nav.classList.toggle('is-hidden', direction === 1 && scroll > 400 && !document.documentElement.classList.contains('menu-open'));
-    fab.classList.toggle('is-shown', scroll > window.innerHeight * 1.2);
   });
   const setDark = () => nav.classList.toggle('is-dark', navDark > 0);
+  // the floating button checks what's behind it (it sits at the bottom, the nav at the top)
+  const fabDark = $$('.work, .enquire');
+  const fabCheck = () => {
+    const y = window.innerHeight - 50;
+    fab.classList.toggle('is-on-dark', fabDark.some(sec => { const r = sec.getBoundingClientRect(); return r.top < y && r.bottom > y; }));
+  };
+  lenis.on('scroll', fabCheck);
+  window.addEventListener('resize', fabCheck);
 
   // Cursor: only appears over things that actually open (archive tiles, project photos).
   // State is re-checked on every pointer move AND every scroll frame, so it never lingers
@@ -374,11 +381,13 @@
     gsap.set('.hero__eyebrow span, .hero__scroll', { opacity: 0, y: 14 });
     gsap.set('.nav', { yPercent: -100 });
 
-    const word = $('.curtain__word'), sub = $('.curtain__sub');
+    const word = $('.curtain__word'), sub = $('.curtain__sub'), rule = $('.curtain__rule');
     const intro = gsap.timeline({ defaults: { ease: 'expo.out' } })
       .from(word, { yPercent: 100, duration: 1.1 })
+      .from($$('i', rule), { scaleX: 0, duration: 1, ease: 'expo.inOut', transformOrigin: i => i ? 'left center' : 'right center' }, '-=.7')
+      .from($('b', rule), { scale: 0, rotate: -45, duration: .7 }, '<.2')
       .from(sub, { opacity: 0, y: 10, duration: .8 }, '-=.6')
-      .to([word, sub], { yPercent: -60, opacity: 0, duration: .7, ease: 'expo.in' }, '+=.25')
+      .to([word, rule, sub], { yPercent: -60, opacity: 0, duration: .7, ease: 'expo.in', stagger: .04 }, '+=.3')
       .to(curtain, { clipPath: 'inset(0% 0% 100% 0%)', duration: 1.1, ease: 'expo.inOut' }, '-=.25')
       .to(arch, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'expo.inOut' }, '-=.85')
       .fromTo(heroVid, { scale: 1.45 }, { scale: 1.15, duration: 2, ease: 'expo.out' }, '<')
@@ -386,6 +395,7 @@
       .to(heroB.lines, { yPercent: 0, duration: 1.3 }, '-=1.15')
       .to('.hero__eyebrow span, .hero__scroll', { opacity: 1, y: 0, duration: 1, stagger: .08 }, '-=1')
       .to('.nav', { yPercent: 0, duration: 1 }, '-=1')
+      .add(() => fab.classList.add('is-shown'), '-=.4')
       .add(() => { curtain.remove(); lenis.start(); gsap.set(arch, { clearProps: 'clipPath' }); buildScroll(); });
   }
 
